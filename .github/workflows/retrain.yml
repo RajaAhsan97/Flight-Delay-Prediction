@@ -48,3 +48,5 @@ jobs:
       # =========================
       - name: Train Model
         run: python src/model/train.py
+        env:
+          PYTHONPATH: .
