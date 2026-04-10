@@ -5,8 +5,13 @@
 import pandas as pd
 import os
 
+BASE_DIR = "data/cleaned" 
+
 def save_data(df: pd.DataFrame, output_path: str) -> str:
-    df.to_csv(output_path, index=False)
+    os.makedirs(BASE_DIR, exist_ok=True)
+    save_path = os.path.join(BASE_DIR, output_path)
+
+    df.to_csv(save_path, index=False)
     print(f"Data saved to {output_path}, shape: {df.shape}")
     return output_path
 
@@ -20,7 +25,7 @@ if __name__ == "__main__":
     raw_df = download_data(2023, 1)
     clean_df, _ = clean_data(raw_df)
     print("DataFrame Columns: ", clean_df.columns.tolist())
-    save_data(clean_df, "data/cleaned/T_ONTIME_REPORTING_cleaned.csv")
+    save_data(clean_df, "T_ONTIME_REPORTING_cleaned.csv")
 
 
 

@@ -264,7 +264,7 @@ if __name__ == "__main__":
     # transform
     clean_df, label_encoders = clean_data(raw_df)
     # load
-    save_data(clean_df, "data/cleaned/T_ONTIME_REPORTING_cleaned.csv")
+    save_data(clean_df, "T_ONTIME_REPORTING_cleaned.csv")
 
     CLF_FEATURES = [
         'OP_UNIQUE_CARRIER_ENC',
