@@ -1,0 +1,50 @@
+name: Monthly Retraining Pipeline
+
+on:
+#   schedule:
+#     - cron: "0 2 1 * *"   # monthly (1st day)
+
+  # Testing
+  push:
+    branches: ["main"]
+
+  workflow_dispatch:
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+        # Testing
+      - name: Wait 5 minutes before retraining
+        run: sleep 300
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+    #   # =========================
+    #   # 1. Extract (NEW DATA)
+    #   # =========================
+    #   - name: Extract New Data
+    #     run: python src/etl/extract.py
+
+    #   # =========================
+    #   # 2. Transform
+    #   # =========================
+    #   - name: Transform Data
+    #     run: python src/etl/transform.py
+
+      # =========================
+      # 3. Train Model
+      # =========================
+      - name: Train Model
+        run: python src/model/train.py
