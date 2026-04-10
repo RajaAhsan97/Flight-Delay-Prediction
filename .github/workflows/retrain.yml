@@ -1,8 +1,9 @@
 name: Monthly Retraining Pipeline
 
 on:
-#   schedule:
-#     - cron: "0 2 1 * *"   # monthly (1st day)
+  # Runs at 02:00AM (UTC time), on 1 day of month . For Pakistan (UTC +5) at 7:00 AM
+  schedule:
+    - cron: "0 2 1 * *"
 
   # Testing
   push:
@@ -18,7 +19,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-        # Testing
+        # Testing - after push wait for 5 minutes 
       - name: Wait 5 minutes before retraining
         run: sleep 300
 
