@@ -18,7 +18,7 @@ import mlflow.sklearn
 import mlflow.xgboost
 from mlflow import MlflowClient
 
-
+import pandas as pd
 
 # ================================================================
 # MLflow Configuration
@@ -262,9 +262,13 @@ if __name__ == "__main__":
     #raw_df = load_data("data/raw/T_ONTIME_REPORTING.csv")
     raw_df = download_data(2023, 1)
     # transform
-    clean_df, label_encoders = clean_data(raw_df)
+    clean_df, label_encoders = clean_data(raw_df)    
     # load
     save_data(clean_df, "T_ONTIME_REPORTING_cleaned.csv")
+
+    clean_df = ''
+    clean_df = pd.read_csv("data/cleaned/T_ONTIME_REPORTING_cleaned.csv")
+    print("Data loaded from path -------------------------------------------")
 
     CLF_FEATURES = [
         'OP_UNIQUE_CARRIER_ENC',
