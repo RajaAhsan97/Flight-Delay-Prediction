@@ -12,6 +12,10 @@ on:
   workflow_dispatch:
 
 jobs:
+  # =========================
+  # 1. Retrain model 
+  # =========================
+
   retrain:
     runs-on: ubuntu-latest
 
@@ -32,22 +36,99 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-    #   # =========================
-    #   # 1. Extract (NEW DATA)
-    #   # =========================
-    #   - name: Extract New Data
-    #     run: python src/etl/extract.py
-
-    #   # =========================
-    #   # 2. Transform
-    #   # =========================
-    #   - name: Transform Data
-    #     run: python src/etl/transform.py
-
-      # =========================
-      # 3. Train Model
-      # =========================
       - name: Train Model
         run: python src/model/train.py
         env:
           PYTHONPATH: .
+
+  # =========================
+  # 2. API Testing
+  # =========================
+  test:
+    runs-on: ubuntu-latest
+    needs: retrain
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Start API server 
+        run: |
+          uvicorn src.api.app:app --host 127.0.0.1 --port 8000 &
+          sleep 8
+
+       # Test Health Endpoint
+      - name: Test Health Endpoint
+        run: |
+          curl -f http://127.0.0.1:8000/ || exit 1
+
+      # Test Prediction Endpoint
+      - name: Test Prediction API
+        run: |
+          curl -X POST http://127.0.0.1:8000/predict-delay \
+          -H "Content-Type: application/json" \
+          -d '{
+                "airline":"DL", 
+                "origin":"JFK", 
+                "dest":"ORD",
+                "distance":740, 
+                "dep_delay":5,
+                "taxi_out":25, 
+                "taxi_in":8,
+                "day_of_week":7, 
+                "day_of_month":3,
+                "carrier_delay":0, 
+                "weather_delay":15              
+               }' \
+          -f || exit 1
+
+      # Success message
+      - name: Success
+        run: echo "API tests passed successfully!"   # or echo $response
+
+  # =========================
+  # 3. Docker Build
+  # =========================
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build Docker Image
+        run: |
+          docker build -t flight-delay-app .
+
+  # =========================
+  # 4A. Push to DockerHub
+  # =========================
+  dockerhub-push:
+    runs-on: ubuntu-latest
+    needs: docker-build
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Login to DockerHub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/flight-delay-app:latest .
+
+      - name: Push Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/flight-delay-app:latest
