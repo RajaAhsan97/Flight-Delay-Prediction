@@ -9,8 +9,7 @@ from xgboost import XGBClassifier
 
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
-    f1_score, roc_auc_score, classification_report,
-    confusion_matrix, roc_curve
+    f1_score, roc_auc_score
 )
 
 import mlflow
@@ -27,10 +26,10 @@ MLFLOW_EXPERIMENT_NAME = "Flight_Delay_Classification"
 MLFLOW_TRACKING_URI    = "mlruns"   # local folder — change to remote URI if needed
 MLFLOW_MODEL_NAME      = "FlightDelayClassifier"  # Name in Model Registry
 
-# ===== Helper functions =====
+# ===== train functions =====
 def train_models(X_train, y_train, X_test, y_test):
     """
-    Train multiple models and return the best one (based on RMSE)
+    Train multiple models and return the best one
     """
     models = {
         "LogisticRegression": LogisticRegression(max_iter=1000, 
@@ -168,11 +167,6 @@ def register_best_model(run_id, model_name, best_metrics):
     """
     Register the best model artifact from a run into the
     MLflow Model Registry, then transition it to 'Staging'.
-
-    Stages:
-      None      → freshly registered version
-      Staging   → validated, ready for QA / integration testing
-      Production→ promote manually after QA passes
     """
     client = MlflowClient()
 
@@ -181,7 +175,7 @@ def register_best_model(run_id, model_name, best_metrics):
 
     # ── 2. Register model (creates registry entry if new,
     #       or adds a new version if name already exists) ────────
-    print(f"\n📦 Registering model → '{model_name}' ...")
+    print(f"\n Registering model → '{model_name}' ...")
     registered = mlflow.register_model(
         model_uri  = model_uri,
         name       = model_name,
@@ -265,10 +259,6 @@ if __name__ == "__main__":
     clean_df, label_encoders = clean_data(raw_df)    
     # load
     save_data(clean_df, "T_ONTIME_REPORTING_cleaned.csv")
-
-    clean_df = ''
-    clean_df = pd.read_csv("data/cleaned/T_ONTIME_REPORTING_cleaned.csv")
-    print("Data loaded from path -------------------------------------------")
 
     CLF_FEATURES = [
         'OP_UNIQUE_CARRIER_ENC',
